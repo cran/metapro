@@ -1,3 +1,8 @@
+#' @title Beta probability
+#' @param p p-value
+#' @param i rank
+#' @param n The number of inputs
+#' @importFrom "stats" "pbeta" "qbeta"
 F_i = function(p, i, n)
 {
   a = i
@@ -7,101 +12,17 @@ F_i = function(p, i, n)
 }
 
 
-#' @title ordmeta
-#' @description Minimum Marginal P-value in joint order distribution
-#' @param p A vector of p-values
-#' @param is.onetail Logical. If set TRUE, p-values are combined without considering the direction of effect, and vice versa. Default: TRUE.
-#' @param eff.sign A vector of signs of effect sizes. It works when is.onetail = FALSE
-#' @importFrom "rSymPy" "Var" "sympy"
-#' @return A list of combined p-value (p), optimal rank where minimum marginal p-value exists (optimal_rank), index of effective p-values (eff.p.idx) and minimum marginal p-value (MMP) if is.onatail=TRUE. Otherwise, the direction of combined effects (overall.eff.direction) is added.
-#' @examples \donttest{ordmeta(p=c(0.01, 0.02, 0.8, 0.25), is.onetail=FALSE, eff.sign = c(1,1,1,-1))}
-#' @export
-
-ordmeta = function(p, is.onetail = TRUE, eff.sign=NULL)
-{
-   direc = eff.sign
-   if(is.null(p)){stop("Input p-values are required.")}
-   if(!is.onetail & is.null(eff.sign)){stop("Input the direction of effects.")}
-   idx_na = which(is.na(p))
-   if(length(idx_na)>0){p = p[-idx_na]; eff.sign = eff.sign[-idx_na]}
-   ordmeta = function(p2)
-   {
-     ord = order(p2, decreasing = F)
-     pord = sort(p2, decreasing = F)
-
-     # get alpha = MIN(F_(i)(x)) {i={1..n}}
-     N = length(p2)
-     alpha = 1.01 # an arbitrary number larger than 1
-     for(i in 1:N)
-     {
-       alpha_temp = F_i(pord[i], i, N)
-       if(alpha_temp < alpha){idx_minimum = i; alpha = alpha_temp}
-     }
-     # symbolic integral
-     for(i in 1:N)
-     {
-       x = Var("x")
-       y = Var("y")
-       if(i==1)
-       {
-         templete = paste(i,"*integrate(1, (x, lob, y))")
-         lob = qbeta(p = alpha,shape1 = i, shape2 = N-i+1, lower.tail = T)
-         templete = gsub("lob", lob, templete)
-       }else if(i>1 & i<N){
-         integ = gsub(pattern = "y", replacement = "x", x = integ)
-         templete = paste(i, "*integrate(",integ,", (x, lob, y))")
-         lob = qbeta(p = alpha,shape1 = i, shape2 = N-i+1, lower.tail = T)
-         templete = gsub("lob", lob, templete)
-       }else if(i==N)
-       {
-         integ = gsub(pattern = "y", replacement = "x", x=integ)
-         templete = paste(i, "*integrate(",integ,", (x, lob, 1))")
-         lob = qbeta(p = alpha,shape1 = i, shape2 = N-i+1, lower.tail = T)
-         templete = gsub("lob", lob, templete)
-       }
-       #print(templete)
-       integ = sympy(templete)
-     }
-     res = 1-as.numeric(integ)
-     return(list(p=res, optimal_rank = idx_minimum, eff.p.idx = ord[1:idx_minimum], MMP = alpha))
-   }
-   if(is.onetail)
-   {
-     RES = ordmeta(p2 = p)
-     return(RES)
-   }else{
-     p1 = p2 = p
-     idx_pos = which(eff.sign >= 0)
-     idx_neg = which(eff.sign < 0)
-     p1[idx_pos] = p[idx_pos]/2
-     p1[idx_neg] = 1-p[idx_neg]/2
-     p2[idx_pos] = 1-p[idx_pos]/2
-     p2[idx_neg] = p[idx_neg]/2
-
-     RES1 = ordmeta(p2 = p1)
-     RES2 = ordmeta(p2 = p2)
-     if(RES1$p<=RES2$p){
-       RES = RES1; RES$overall.eff.direction = "+"
-     }else{
-         RES = RES2; RES$overall.eff.direction = "-"
-     }
-     RES$p = RES$p * 2
-     if(RES$p > 1.0){RES$p = 1.0}
-     return(RES)
-   }
- }
-
-
 #' @title wFisher
 #' @description sample size-weighted Fisher's method
 #' @param p A numeric vector of p-values
 #' @param weight A numeric vector of weight or sample size for each experiment
 #' @param is.onetail Logical. If set TRUE, p-values are combined without considering the direction of effects, and vice versa. Default: TRUE.
 #' @param eff.sign A vector of signs of effect sizes. It works when is.onetail = FALSE
-#' @return A list of combined p-value (p) is returned if is.onatail=TRUE. Otherwise, the direction of combined effects (overall.eff.direction) is added.
+#' @return p : Combined p-value
+#' @return overall.eff.direction : The direction of combined effects.
 #' @examples wFisher(p=c(0.01,0.2,0.8), weight = c(50,60,100),is.onetail=FALSE, eff.sign=c(1,1,1))
 #' @importFrom "stats" "pgamma" "qgamma"
-#' @references Becker BJ (1994). "Combining significance levels." In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215-230. Russell Sage, New York.
+#' @references Becker BJ (1994). “Combining significance levels.” In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215–230. Russell Sage, New York.
 #' @references Fisher RA (1925). Statistical methods for research workers. Oliver and Boyd, Edinburgh.
 #' @export
 
@@ -173,12 +94,14 @@ wFisher = function(p, weight = NULL, is.onetail = TRUE, eff.sign)
 #' @param weight A numeric vector of weights (e.g., sample sizes)
 #' @param is.onetail Logical. If set TRUE, p-values are combined without considering the direction of effect, and vice versa. Default: TRUE.
 #' @param eff.sign A vector of signs of effect sizes. It works when is.onetail = FALSE
-#' @return A list of combined p-value (p) and transformed sum of z-values (sumz) is returned if is.onatail=TRUE. Otherwise, the direction of combined effects (overall.eff.direction) is added.
+#' @return p : Combined p-value
+#' @return overall.eff.direction : The direction of combined effects.
+#' @return sumz : Sum of transformed z-score
 #' @examples wZ(p=c(0.01,0.2,0.8), weight = c(20,10,40), is.onetail=FALSE, eff.sign=c(1,-1,1))
 #' @import "metap"
-#' @references Becker BJ (1994). "Combining significance levels." In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215-230. Russell Sage, New York.
+#' @references Becker BJ (1994). “Combining significance levels.” In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215–230. Russell Sage, New York.
 #' @references Stouffer SA, Suchman EA, DeVinney LC, Star SA, Williams RMJ (1949). The American soldier, vol 1: Adjustment during army life. Princeton University Press, Princeton.
-#' @references Mosteller, F. & Bush, R.R. (1954). Selected quantitative techniques. In: Handbook of Social Psychology, Vol. 1 (G. Lindzey, ed.), pp. 289-334. Addison - Wesley Cambridge, Mass.
+#' @references Mosteller, F. & Bush, R.R. (1954). Selected quantitative techniques. In: Handbook of Social Psychology, Vol. 1 (G. Lindzey, ed.), pp. 289–334. Addison‐Wesley, Cambridge, Mass.
 #' @export
 wZ = function(p, weight = NULL, is.onetail = TRUE, eff.sign)
 {
@@ -225,11 +148,12 @@ wZ = function(p, weight = NULL, is.onetail = TRUE, eff.sign)
 #' @param weight A numeric vector of weights (e.g., samples sizes)
 #' @param is.onetail Logical. If set TRUE, p-values are combined without considering the direction of effect, and vice versa. Default: TRUE.
 #' @param eff.sign A vector of signs of effect sizes (1 or -1). It works when is.onetail = FALSE
-#' @return A list of combined p-value (p) is returned if is.onatail=TRUE. Otherwise, the direction of combined effects (overall.eff.direction) is added.
+#' @return p : Combined p-value
+#' @return overall.eff.direction : The direction of combined effects.
 #' @examples lancaster(p=c(0.01,0.2,0.8), weight=c(20,50,10), is.onetail=FALSE, eff.sign=c(1,1,1))
-#' @import "stats"
-#' @references Becker BJ (1994). "Combining significance levels." In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215-230. Russell Sage, New York.
-#' @references Lancaster HO (1949). "Combination of probabilities arising from data in discrete distributions." Biometrika, 36, 370-382.
+#' @importFrom "stats" "pchisq" "qchisq"
+#' @references Becker BJ (1994). “Combining significance levels.” In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215–230. Russell Sage, New York.
+#' @references Lancaster HO (1949). “Combination of probabilities arising from data in discrete distributions.” Biometrika, 36, 370–382.
 #' @export
 
 lancaster = function(p, weight, is.onetail=TRUE, eff.sign)

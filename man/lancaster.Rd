@@ -16,7 +16,9 @@ lancaster(p, weight, is.onetail = TRUE, eff.sign)
 \item{eff.sign}{A vector of signs of effect sizes (1 or -1). It works when is.onetail = FALSE}
 }
 \value{
-A list of combined p-value (p) is returned if is.onatail=TRUE. Otherwise, the direction of combined effects (overall.eff.direction) is added.
+p : Combined p-value
+
+overall.eff.direction : The direction of combined effects.
 }
 \description{
 P-value combination based on Lancaster's procedure
@@ -25,7 +27,7 @@ P-value combination based on Lancaster's procedure
 lancaster(p=c(0.01,0.2,0.8), weight=c(20,50,10), is.onetail=FALSE, eff.sign=c(1,1,1))
 }
 \references{
-Becker BJ (1994). "Combining significance levels." In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215-230. Russell Sage, New York.
+Becker BJ (1994). “Combining significance levels.” In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215–230. Russell Sage, New York.
 
-Lancaster HO (1949). "Combination of probabilities arising from data in discrete distributions." Biometrika, 36, 370-382.
+Lancaster HO (1949). “Combination of probabilities arising from data in discrete distributions.” Biometrika, 36, 370–382.
 }

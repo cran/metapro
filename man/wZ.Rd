@@ -16,7 +16,11 @@ wZ(p, weight = NULL, is.onetail = TRUE, eff.sign)
 \item{eff.sign}{A vector of signs of effect sizes. It works when is.onetail = FALSE}
 }
 \value{
-A list of combined p-value (p) and transformed sum of z-values (sumz) is returned if is.onatail=TRUE. Otherwise, the direction of combined effects (overall.eff.direction) is added.
+p : Combined p-value
+
+overall.eff.direction : The direction of combined effects.
+
+sumz : Sum of transformed z-score
 }
 \description{
 P-value combination based on weighted Z-method
@@ -25,9 +29,9 @@ P-value combination based on weighted Z-method
 wZ(p=c(0.01,0.2,0.8), weight = c(20,10,40), is.onetail=FALSE, eff.sign=c(1,-1,1))
 }
 \references{
-Becker BJ (1994). "Combining significance levels." In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215-230. Russell Sage, New York.
+Becker BJ (1994). “Combining significance levels.” In Cooper H, Hedges LV (eds.), A handbook of research synthesis, 215–230. Russell Sage, New York.
 
 Stouffer SA, Suchman EA, DeVinney LC, Star SA, Williams RMJ (1949). The American soldier, vol 1: Adjustment during army life. Princeton University Press, Princeton.
 
-Mosteller, F. & Bush, R.R. (1954). Selected quantitative techniques. In: Handbook of Social Psychology, Vol. 1 (G. Lindzey, ed.), pp. 289-334. Addison - Wesley Cambridge, Mass.
+Mosteller, F. & Bush, R.R. (1954). Selected quantitative techniques. In: Handbook of Social Psychology, Vol. 1 (G. Lindzey, ed.), pp. 289–334. Addison‐Wesley, Cambridge, Mass.
 }
